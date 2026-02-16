@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Mini Piano Web App</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+		body {
+			background: linear-gradient(to right, #1e1e2f, #2a2a3d);
+			color: white;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		header {
+			font-size: 2rem;
+			font-weight: 600;
+			padding: 1rem;
+			text-align: center;
+		}
+		.piano {
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 1rem;
+		}
+		.piano-inner {
+			position: relative;
+			display: flex;
+		}
+		.key {
+			display: flex;
+			align-items: flex-end;
+			justify-content: center;
+			font-size: 12px;
+			border: 1px solid #444;
+			border-radius: 4px;
+			transition: transform 0.1s ease;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+			user-select: none;
+			cursor: pointer;
+		}
+		.white {
+			width: 60px;
+			height: 200px;
+			background: linear-gradient(to bottom, #fff, #e6e6e6);
+			color: #333;
+			z-index: 1;
+			position: relative;
+		}
+		.black {
+			width: 40px;
+			height: 120px;
+			background: linear-gradient(to bottom, #000, #444);
+			color: white;
+			position: absolute;
+			top: 0;
+			z-index: 2;
+		}
+		.key.pressed {
+			transform: translateY(4px);
+			box-shadow: none;
+		}
+		footer {
+			padding: 1rem;
+			font-size: 0.9rem;
+			text-align: center;
+			opacity: 0.7;
+		}
+	</style>
+</head>
+<body>
+	<header>🎹 Mini Piano</header>
+	<div class="piano">
+		<div class="piano-inner" id="piano"></div>
+	</div>
+	<footer>Use Keyboard or Click to Play. Range [C4-E5]</footer>
+
+	<script>
+		// setup
+		const whiteNotes = ['C4','D4','E4','F4','G4','A4','B4','C5','D5','E5'];
+
+		const blackNotes = [
+			{ note: 'Db4', position: 40 },
+			{ note: 'Eb4', position: 100 },
+			{ note: 'Gb4', position: 220 },
+			{ note: 'Ab4', position: 280 },
+			{ note: 'Bb4', position: 340 },
+			{ note: 'Db5', position: 460 },
+			{ note: 'Eb5', position: 520 }
+		];
+
+		const keyMap = {
+			a: 'C4', s: 'D4', d: 'E4', f: 'F4', g: 'G4', h: 'A4', j: 'B4', k: 'C5', l: 'D5', ';': 'E5',
+			w: 'Db4', e: 'Eb4', t: 'Gb4', y: 'Ab4', u: 'Bb4', o: 'Db5', p: 'Eb5'
+		};
+
+		const piano = document.getElementById('piano');
+		console.log(piano);
+		const noteAudio = {};
+
+		//Add white keys
+		whiteNotes.forEach(note => {
+			const key = document.createElement('div');
+			key.className = 'key white';
+			key.dataset.note = note;
+			key.innerText = note;
+			piano.appendChild(key);
+			noteAudio[note] = new Audio(`piano-mp3/${note}.mp3`);
+		});
+
+		//Add black keys
+		blackNotes.forEach(({note, position}) => {
+			const key = document.createElement('div');
+			key.className = 'key black';
+			key.style.left = `${position}px`;
+			key.dataset.note = note;
+			key.innerText = note;
+			piano.appendChild(key);
+			noteAudio[note] = new Audio(`piano-mp3/${note}.mp3`);
+		});
+
+		//Mouse events
+		piano.querySelectorAll('.key').forEach(key => {
+			key.addEventListener('click', e => {
+				const note = key.dataset.note;
+				playNote(note, key);
+			})
+		});
+
+		//Keyboard support
+		document.addEventListener('keydown', e => {
+			const note = keyMap[e.key];
+			if (!note) return;
+			const keyEl = piano.querySelector(`.key[data-note="${note}"`);
+			if (keyEl) playNote(note, keyEl);
+		});
+
+		function playNote(note, keyEl) {
+			const audio = noteAudio[note];
+			if (!audio) return;
+			audio.currentTime = 0;
+			audio.play();
+			keyEl.classList.add('pressed');
+			setTimeout(() => keyEl.classList.remove('pressed'), 150);
+		}
+	</script>
+</body>
+</html>
